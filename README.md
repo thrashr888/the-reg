@@ -1,8 +1,8 @@
 # Are you on The Reg?
 
-A global service registry.
+A global service registry. Public is free. $6.99/mo for unlimited private.
 
-```python
+```shell
     $ reg create
     # echo "authtoken: Sc1VvxLceT5MrMaAjoio_2uLEttzm4com5xT1zh7D7" > ~/.thereg.yml
     # export THE_REG_TOKEN=Sc1VvxLceT5MrMaAjoio_2uLEttzm4com5xT1zh7D7
