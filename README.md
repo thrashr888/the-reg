@@ -1,6 +1,6 @@
 # Are you on The Reg?
 
-A global service registry. Public is free. $6.99/mo for unlimited private.
+A global service registry. Free public forwarding. $6.99/mo for unlimited private.
 
 ```shell
     $ reg create
