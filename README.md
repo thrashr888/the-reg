@@ -56,3 +56,8 @@ A global service registry. Free public forwarding. $6.99/mo for unlimited privat
     c65e2d0eb499.the-reg.name:6379
     # redis.thrashr888.the-reg.name:6379
 ```
+
+# Ideas
+
+- Use Consul for secure routing?
+- Use ngrok for opening tunnels?
