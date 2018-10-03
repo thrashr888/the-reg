@@ -2,7 +2,44 @@
 
 A global service registry. Free public forwarding. $6.99/mo for unlimited private.
 
-# Some examples
+# CLI Help
+
+```
+$ reg [command]
+
+account - `reg account new :username :email` sign up for an account
+add - `reg add :name [hostname] :port` add a node
+create - get a user token
+get - `reg get :name` Get a service url
+help - show this list
+ip - get your public ip address
+list - list your nodes
+login - save your auth token
+me - your username
+name - `reg name :id :name` name a node
+start - attempt to reset status to "UP"
+server - run the web service
+```
+
+# API
+
+```
+GET /node
+POST /node
+GET /node/:id
+PATCH /node/:id
+DELETE /node/:id
+
+GET /account
+GET /account/confirm/:token
+
+POST /user
+GET /user/:id
+PATCH /user/:id
+DELETE /user/:id
+```
+
+# CLI Examples
 
 ```shell
     $ reg create
@@ -78,3 +115,7 @@ It's better if you assume it is not.
 **Can people use this service to log into my computer/server?**
 
 It's more like some links or a [proxy server](https://en.wikipedia.org/wiki/Proxy_server). It's up to you to firewall or otherwise secure your servers.
+
+# Dev
+
+> reflex -r '\.(go|html)$' -s -- sh -c 'go run reg.go'

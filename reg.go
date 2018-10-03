@@ -17,7 +17,8 @@ import (
 type User struct {
 	ID                string
 	Email             string
-	EmailConfirmation string
+	EmailConfirmToken string
+	EmailConfirmed    bool
 	Username          string
 	IP                string
 	Authtoken         string
