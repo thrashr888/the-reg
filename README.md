@@ -59,5 +59,5 @@ A global service registry. Free public forwarding. $6.99/mo for unlimited privat
 
 # Ideas
 
-- Use Consul for secure routing?
+- Use Consul for secure routing/networking/proxying?
 - Use ngrok for opening tunnels?
