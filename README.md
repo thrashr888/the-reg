@@ -2,6 +2,8 @@
 
 A global service registry. Free public forwarding. $6.99/mo for unlimited private.
 
+# Some examples
+
 ```shell
     $ reg create
     # echo "authtoken: Sc1VvxLceT5MrMaAjoio_2uLEttzm4com5xT1zh7D7" > ~/.thereg.yml
@@ -31,14 +33,14 @@ A global service registry. Free public forwarding. $6.99/mo for unlimited privat
     http://dff8522fe5dc.the-reg.name
     # http://first-deployment.full-buffallo-hotness.the-reg.name
     $ reg name c65e2d0eb499 redis-my-first-redis
-    redis-cli -h redis-my-first-redis.the-reg.name -p 6379
+    redis-cli -h redis-my-first-redis.full-buffallo-hotness.the-reg.name -p 6379
     $ reg name cf3f7336b1e0 cool-website
-    http://cool-website.the-reg.name
-    $ curl http://cool-website.the-reg.name
+    http://cool-website.full-buffallo-hotness.the-reg.name
+    $ curl http://cool-website.full-buffallo-hotness.the-reg.name
     <p>The server works!</p>
     $ reg name d39dd625947b cool-website
-    https://cool-website.the-reg.name
-    $ curl https://cool-website.the-reg.name
+    https://cool-website.full-buffallo-hotness.the-reg.name
+    $ curl https://cool-website.full-buffallo-hotness.the-reg.name
     <p>The server works!</p>
     $ reg add redis-b redis15.localnet.org 6390 --public
     y0am0fa6786a
@@ -52,8 +54,9 @@ A global service registry. Free public forwarding. $6.99/mo for unlimited privat
     y0am0fa6786a   redis-b            redis15.localnet.org  6379      UP       2h    Y        
     $ reg account new thrashr888 thrashr888@gmail.com
     Account created. Check your email to log in at https://www.the-reg.name/
+    # You click the link to confirm your email address...
     $ reg get redis
-    c65e2d0eb499.the-reg.name:6379
+    c65e2d0eb499.full-buffallo-hotness.the-reg.name:6379
     # redis.thrashr888.the-reg.name:6379
 ```
 
@@ -61,3 +64,17 @@ A global service registry. Free public forwarding. $6.99/mo for unlimited privat
 
 - Use Consul for secure routing/networking/proxying?
 - Use ngrok for opening tunnels?
+
+# FAQ
+
+**Does this use UDDI?**
+
+No way.
+
+**Is this a totally secure service?**
+
+It's better if you assume it is not.
+
+**Can people use this service to log into my computer/server?**
+
+It's more like some links or a [proxy server](https://en.wikipedia.org/wiki/Proxy_server). It's up to you to firewall or otherwise secure your servers.

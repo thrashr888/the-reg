@@ -1,0 +1,26 @@
+<html>
+  <head>
+    <title>The Reg</title>
+  </head>
+  <body>
+
+    {{if .Nodes -}}
+      <h2>
+        Your nodes:
+      </h2>
+
+      <ul>
+        {{- range .Nodes }}
+          <li>
+            <a href="/view/{{ .ID}}">{{ .ID}}</a>
+          </li>
+        {{- end}}
+      </ul>
+    {{- else}}
+      <p>
+        No Nodes here.
+      </p>
+    {{- end}}
+
+  </body>
+</html>
