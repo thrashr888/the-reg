@@ -1,11 +1,8 @@
 package thereg
 
 import (
-	"io/ioutil"
+	"database/sql"
 	"log"
-	"path"
-	"path/filepath"
-	"strings"
 )
 
 // Node represents a single networked resource
@@ -18,7 +15,8 @@ type Node struct {
 	Port      string
 	Status    string
 	Public    bool
-	createdAt string
+	CreatedAt string
+	UpdatedAt string
 }
 
 // NodeList is a collection of Nodes
@@ -26,58 +24,58 @@ type NodeList struct {
 	Nodes []Node
 }
 
-func (p *Node) save() error {
-	filename := "data/" + p.ID + ".txt"
-	return ioutil.WriteFile(filename, []byte(p.URL), 0600)
-}
+// INSERT INTO nodes
+// (id, account_id, name, port, url, hostname, status)
+// VALUES
+// ('c65e2d0eb499', 'nyft708say7f', 'redis', 6973, 'redis.c65e2d0eb499.the-reg.link', '76.87.249.25', 'UP');
 
-func loadNode(id string) (*Node, error) {
-	filename := "data/" + id + ".txt"
-
-	url, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Node{ID: id, URL: string(url)}, nil
-}
-
-func loadNodes() ([]Node, error) {
-	files, err := filepath.Glob("./data/*.txt")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	nodes := []Node{}
-	for _, f := range files {
-		_, file := filepath.Split(f)
-		id := strings.TrimSuffix(file, path.Ext(file))
-		if err != nil {
-			continue
+// FromDBRows returns a NodeList from sql.Rows
+func (nodes *NodeList) FromDBRows(rows *sql.Rows) NodeList {
+	n := []Node{}
+	for rows.Next() {
+		var node Node
+		if err := rows.Scan(
+			&node.ID,
+			&node.AccountID,
+			&node.Name,
+			&node.URL,
+			&node.Hostname,
+			&node.Port,
+			&node.Status,
+			&node.Public,
+			&node.CreatedAt,
+			&node.UpdatedAt); err != nil {
+			log.Println(err.Error())
 		}
-		nodes = append(nodes, Node{ID: id})
+		n = append(n, node)
 	}
-
-	return nodes, nil
+	return NodeList{Nodes: n}
 }
 
-// GET /node
-// POST /node
-// GET /node/:id
-// PATCH /node/:id
-// DELETE /node/:id
-
-// dff8522fe5dc   first-deployment   76.87.249.25  8080:80   UP       6h    N
-// cf3f7336b1e0   http               76.87.249.25  80        UP       3h    Y
-// d39dd625947b   https              76.87.249.25  443       UP       3h    Y
-// bc2740d30a5f   httpexposed        76.87.249.25  8081:80   DOWN     2h    Y
-// c65e2d0eb499   redis              76.87.249.25  6379      UP       2h    Y
+// FromDBRow returns a NodeList from sql.Row
+func (nodes *NodeList) FromDBRow(row *sql.Row) Node {
+	var node Node
+	if err := row.Scan(
+		&node.ID,
+		&node.AccountID,
+		&node.Name,
+		&node.URL,
+		&node.Hostname,
+		&node.Port,
+		&node.Status,
+		&node.Public,
+		&node.CreatedAt,
+		&node.UpdatedAt); err != nil {
+		log.Println(err.Error())
+	}
+	return node
+}
 
 // Index returns the user's nodes
 // GET /node
 func (nodes *NodeList) Index() NodeList {
-	n := DBGetNodes("nyft708say7f")
-	// TODO
+	n := DBGetNodes(accountID)
+	return n
 }
 
 // Create adds a Node
@@ -97,15 +95,8 @@ func (nodes *NodeList) Create(params Node) Node {
 // Read returns a node
 // GET /node/:id
 func (nodes *NodeList) Read(id string) Node {
-	return Node{
-		ID:       id,
-		Name:     "first-deployment",
-		URL:      "first-deployment.thrashr888.the-reg.link:80",
-		Hostname: "76.87.249.25",
-		Port:     "8080:80",
-		Status:   "UP",
-		Public:   true,
-	}
+	n := DBGetNode(id)
+	return n
 }
 
 // Update changes a node

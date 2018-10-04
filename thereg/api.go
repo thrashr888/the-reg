@@ -14,79 +14,10 @@ var templates = template.Must(template.ParseFiles("tmpl/index.html", "tmpl/edit.
 var validPath = regexp.MustCompile("^/(account|node)/([a-zA-Z0-9]+)$")
 var validData = regexp.MustCompile("^data/([a-zA-Z0-9]+)\\.txt$")
 
-// func getID(w http.ResponseWriter, r *http.Request) (string, error) {
-// 	m := validPath.FindStringSubmatch(r.URL.Path)
-// 	if m == nil {
-// 		http.NotFound(w, r)
-// 		return "", errors.New("Invalid Node ID")
-// 	}
-// 	return m[2], nil // The ID is the second subexpression.
-// }
-
-// func renderTemplate(w http.ResponseWriter, tmpl string, n *Node) {
-// 	err := templates.ExecuteTemplate(w, tmpl+".html", n)
-// 	if err != nil {
-// 		http.Error(w, err.Error(), http.StatusInternalServerError)
-// 	}
-// }
-
-// func viewHandler(w http.ResponseWriter, r *http.Request, id string) {
-// 	fmt.Println(time.Now().UTC().UnixNano(), "Viewing", id)
-// 	n, err := loadNode(id)
-// 	if err != nil {
-// 		http.Redirect(w, r, "/edit/"+id, http.StatusFound)
-// 		return
-// 	}
-
-// 	renderTemplate(w, "view", n)
-// }
-
-// func editHandler(w http.ResponseWriter, r *http.Request, id string) {
-// 	fmt.Println(time.Now().UTC().UnixNano(), "Editing", id)
-// 	n, err := loadNode(id)
-// 	if err != nil {
-// 		n = &Node{ID: id}
-// 	}
-
-// 	renderTemplate(w, "edit", n)
-// }
-
-// func saveHandler(w http.ResponseWriter, r *http.Request, id string) {
-// 	fmt.Println(time.Now().UTC().UnixNano(), "Saving", id)
-// 	URL := r.FormValue("URL")
-// 	n := &Node{ID: id, URL: string(URL)}
-// 	err := n.save()
-// 	if err != nil {
-// 		http.Error(w, err.Error(), http.StatusInternalServerError)
-// 		return
-// 	}
-
-// 	http.Redirect(w, r, "/view/"+id, http.StatusFound)
-// }
-
-// func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
-// 	return func(w http.ResponseWriter, r *http.Request) {
-// 		// Here we will extract the page id from the Request,
-// 		// and call the provided handler 'fn'
-// 		m := validPath.FindStringSubmatch(r.URL.Path)
-// 		if m == nil {
-// 			http.NotFound(w, r)
-// 			return
-// 		}
-// 		fn(w, r, m[2])
-// 	}
-// }
-
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(time.Now().UTC().UnixNano(), "Index")
 
-	n, err := loadNodes()
-	if n == nil {
-		http.NotFound(w, r)
-		return
-	}
-
-	err = templates.ExecuteTemplate(w, "index.html", NodeList{Nodes: n})
+	err := templates.ExecuteTemplate(w, "index.html", map[string]string{"title": "Home"})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
@@ -126,6 +57,7 @@ func nodesHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func nodeHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Println(time.Now().UTC().UnixNano(), "/node/:id")
 
 	w.Header().Set("Content-Type", "application/json")
 
@@ -238,7 +170,6 @@ func accountConfirmHandler(w http.ResponseWriter, r *http.Request) {
 
 // Serve runs the http server
 func Serve() {
-
 	http.HandleFunc("/", indexHandler)
 
 	// GET /node
@@ -259,5 +190,4 @@ func Serve() {
 
 	fmt.Println("Server running at", "localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
-
 }

@@ -1,7 +1,7 @@
 DROP TABLE nodes;
 CREATE TABLE nodes (
-    id          char(8) PRIMARY KEY,
-    account_id  char(8),
+    id          char(12) PRIMARY KEY,
+    account_id  char(12),
     name        varchar(255) NOT NULL,
     url         varchar(255) NOT NULL,
     hostname    varchar(255) NOT NULL,
@@ -14,13 +14,13 @@ CREATE TABLE nodes (
 
 DROP TABLE accounts;
 CREATE TABLE accounts (
-    id                        char(8) PRIMARY KEY,
-    email                     varchar(255) NOT NULL,
-    email_confirmation_token  varchar(255) NOT NULL,
+    id                        char(12) PRIMARY KEY,
+    email                     varchar(255),
+    email_confirm_token       varchar(255),
     email_confirmed           boolean,
-    username                  varchar(255) NOT NULL,
+    username                  varchar(255),
     ip                        varchar(255) NOT NULL,
-    auth_token                varchar(255) NOT NULL,
+    authtoken                 varchar(255) NOT NULL,
     created_at                date,
     updated_at                date
 );

@@ -7,18 +7,18 @@ A global service registry. Free public forwarding. $6.99/mo for unlimited privat
 ```
 $ reg [command]
 
-account - `reg account new :username :email` sign up for an account
-add - `reg add :name [hostname] :port` add a node
-create - get a user token
-get - `reg get :name` Get a service url
-help - show this list
-ip - get your public ip address
-list - list your nodes
-login - save your auth token
-me - your username
-name - `reg name :id :name` name a node
-start - attempt to reset status to "UP"
-server - run the web service
+    account - `reg account new :username :email` sign up for an account
+    add - `reg add :name [hostname] :port` add a node
+    create - get a user token
+    get - `reg get :name` Get a service url
+    help - show this list
+    ip - get your public ip address
+    list - list your nodes
+    login - save your auth token
+    me - your username
+    name - `reg name :id :name` name a node
+    start - attempt to reset status to "UP"
+    server - run the web service
 ```
 
 # API
@@ -101,6 +101,12 @@ DELETE /user/:id
 
 - Use Consul for secure routing/networking/proxying?
 - Use ngrok for opening tunnels?
+- https://github.com/mitchellh/cli
+- https://github.com/mitchellh/colorstring
+- https://github.com/hashicorp/hcl
+- https://github.com/hashicorp/go-uuid
+- https://github.com/mitchellh/ioprogress
+
 
 # FAQ
 
