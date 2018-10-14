@@ -11,7 +11,7 @@ variable "hosted_zone_id" {
 }
 
 terraform {
-  required_version = "0.11"
+  required_version = "0.11.8"
 
   backend "remote" {
     organization = "pthrasher_v2"
