@@ -90,7 +90,7 @@ resource "aws_instance" "web" {
 
   tags {
     Name   = "the-reg-${random_pet.server.id}"
-    Domain = "${aws_route53_record.www}"
+    Domain = "${aws_route53_record.www.name}"
   }
 
   volume_tags {
