@@ -44,7 +44,7 @@ data "aws_ami" "amzn2" {
   most_recent = true
 
   filter {
-    name = "name"
+    name   = "name"
     values = ["amzn2-ami-minimal-hvm-2.0.*-x86_64-ebs"] # amazon linux2 minimal
   }
 
@@ -57,8 +57,7 @@ data "aws_ami" "amzn2" {
 data "template_file" "user_data" {
   template = "${file("${path.module}/user-data.tpl")}"
 
-  vars {
-  }
+  vars {}
 }
 
 resource "random_pet" "server" {
@@ -66,10 +65,12 @@ resource "random_pet" "server" {
     # Generate a new pet name each time we switch to a new AMI id
     ami_id = "${data.aws_ami.amzn2.id}"
   }
+
+  length = 3
 }
 
 resource "aws_instance" "web" {
-  ami           = "${data.aws_ami.amzn2.id}"
+  ami           = "${random_pet.server.keepers.ami_id}"
   instance_type = "t3.micro"
   key_name      = "${aws_key_pair.id_rsa.key_name}"
   monitoring    = false
@@ -89,7 +90,7 @@ resource "aws_instance" "web" {
   }
 
   tags {
-    Name   = "the-reg-${random_pet.server.id}"
+    Name = "the-reg-${random_pet.server.id}"
   }
 
   volume_tags {
