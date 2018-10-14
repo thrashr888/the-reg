@@ -76,7 +76,7 @@ resource "aws_instance" "web" {
   monitoring    = false
 
   subnet_id                   = "${var.subnet_id}"
-  vpc_security_group_ids      = ["${aws_security_group.the-reg-web.id}"]
+  vpc_security_group_ids      = ["${aws_security_group.the-reg-main.id}"]
   associate_public_ip_address = true
 
   user_data = "${data.template_file.user_data.rendered}"
@@ -107,13 +107,13 @@ resource "aws_key_pair" "id_rsa" {
   public_key = "${file("${path.module}/id_rsa.pub")}"
 }
 
-resource "aws_security_group" "the-reg-web" {
-  name        = "the-reg-web"
+resource "aws_security_group" "the-reg-main" {
+  name        = "the-reg-main"
   description = "Just web ports for the-reg"
   vpc_id      = "${var.vpc_id}"
 
   tags {
-    Name = "the-reg-web"
+    Name = "the-reg-main"
   }
 
   ingress {
