@@ -93,43 +93,68 @@ func (accounts *AccountList) Create() Account {
 	username := petname.Generate(3, "-")
 	authToken := createToken(id, username)
 
-	return Account{
-		ID:        id,
-		Username:  username,
-		Authtoken: authToken,
+	params := Account{
+		ID:             id,
+		Username:       username,
+		Authtoken:      authToken,
+		EmailConfirmed: false,
 	}
+
+	DBInsertAccount(params)
+
+	// return Account from DB
+	n := DBGetAccount(id)
+	return n
 }
 
 // Read returns the current User
 // GET /account
-func (accounts *AccountList) Read() Account {
-	n := DBGetAccount(accountID)
+func (accounts *AccountList) Read(account Account) Account {
+	n := DBGetAccount(account.ID)
 	return n
 }
 
 // Confirm validates the Users's email
-// GET /account/confirm/:token
-func (accounts *AccountList) Confirm(token string) Account {
-	return Account{
-		ID:       "yb7fd0as",
-		Email:    "thrashr888@gmail.com",
-		Username: "thrashr888",
+// GET /account/confirm/:confirmToken
+func (accounts *AccountList) Confirm(confirmToken string) Account {
+	account := DBGetAccountByConfirmToken(confirmToken)
+
+	// update the Account
+	if account.ID != "" {
+		account.EmailConfirmToken = ""
+		account.EmailConfirmed = true
 	}
+	DBUpdateAccount(account)
+
+	// return Account from DB
+	n := DBGetAccount(account.ID)
+	return n
 }
 
 // Update changes the account info
 // PATCH /account
-func (accounts *AccountList) Update(params Account) Account {
-	return Account{
-		ID:       "yb7fd0as",
-		Email:    params.Email,
-		Username: params.Username,
+func (accounts *AccountList) Update(account Account, params Account) Account {
+	// update the Account
+	if params.Email != "" {
+		account.Email = params.Email
+		account.EmailConfirmToken = createID()
+		account.EmailConfirmed = false
 	}
+	if params.Username != "" {
+		account.Username = params.Username
+	}
+	DBUpdateAccount(account)
+
+	// TODO send email with confirm token link
+
+	// return Account from DB
+	n := DBGetAccount(account.ID)
+	return n
 }
 
 // Delete removes the User
 // DELETE /account
-func (accounts *AccountList) Delete() string {
+func (accounts *AccountList) Delete(account Account) string {
 	return "yb7fd0as"
 }
 

@@ -3,10 +3,11 @@ package thereg
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
-	petname "github.com/dustinkirkland/golang-petname"
 	shortid "github.com/teris-io/shortid"
 )
 
@@ -115,10 +116,10 @@ func (nodes *NodeList) Create(account Account, params Node) Node {
 	params.AccountID = account.ID
 	params.Public = true
 	params.Status = "UP"
-	params.URL = createURL(id, account.ID, params.Port)
 	if params.Name == "" {
-		params.Name = petname.Generate(3, "-")
+		params.Name = id
 	}
+	params.URL = createURL(params.Name, account.Username, params.Port)
 	DBInsertNode(params)
 
 	// return Node from DB
@@ -135,17 +136,23 @@ func (nodes *NodeList) Read(id string) Node {
 
 // Update changes a node
 // PATCH /node/:id
-func (nodes *NodeList) Update(id string, params Node) Node {
-	url := createURL(params.Name, "thrashr888", params.Port)
-	return Node{
-		ID:       id,
-		Name:     params.Name,
-		URL:      url,
-		Hostname: params.Hostname,
-		Port:     params.Port,
-		Status:   params.Status,
-		Public:   true,
+func (nodes *NodeList) Update(account Account, id string, params Node) Node {
+	// check for existing Node
+	node := DBGetNode(id)
+	if node.ID == "" {
+		return Node{}
 	}
+
+	// update the Node
+	if params.Name != "" {
+		node.Name = params.Name
+	}
+	node.URL = createURL(node.Name, account.Username, node.Port)
+	DBUpdateNode(node)
+
+	// return Node from DB
+	n := DBGetNode(id)
+	return n
 }
 
 // Delete changes a node
@@ -156,10 +163,10 @@ func (nodes *NodeList) Delete(id string) string {
 
 func createURL(name string, username string, port string) string {
 	// redis.full-buffallo-hotness.the-reg.link:6379
-	return name + "." + username + "the-reg.link:" + port
+	return fmt.Sprintf("%v.%v.the-reg.link:%v", name, username, port)
 }
 
 func createID() string {
 	ret, _ := shortid.Generate()
-	return ret
+	return strings.TrimSpace(ret)
 }

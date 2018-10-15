@@ -31,14 +31,33 @@ func DBGetAccountByToken(authToken string) Account {
 	return al.FromDBRow(row)
 }
 
+// DBGetAccountByConfirmToken gets a single Account
+func DBGetAccountByConfirmToken(confirmToken string) Account {
+	db := connect()
+	row := db.QueryRow("SELECT id, email, email_confirm_token, email_confirmed, username, ip, authtoken, created_at, updated_at FROM accounts WHERE email_confirm_token = $1", confirmToken)
+	al := AccountList{}
+	return al.FromDBRow(row)
+}
+
 // DBInsertAccount inserts an Account into the DB
 func DBInsertAccount(a Account) Account {
 	db := connect()
 	row := db.QueryRow(`INSERT INTO accounts
 		(id, email, email_confirm_token, email_confirmed, username, ip, authtoken, created_at, updated_at)
 		VALUES
-		(%s, %s, %s, %s, %s, %s, %s, NOW(), NOW())`,
+		($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())`,
 		a.ID, a.Email, a.EmailConfirmToken, a.EmailConfirmed, a.Username, a.IP, a.Authtoken)
+	al := AccountList{}
+	return al.FromDBRow(row)
+}
+
+// DBUpdateAccount updates an Account in the DB
+func DBUpdateAccount(n Account) Account {
+	db := connect()
+	row := db.QueryRow(`UPDATE accounts SET
+		username = $2, email = $3, email_confirm_token = $4, email_confirmed = $5, updated_at = NOW()
+		WHERE id = $1`,
+		n.ID, n.Username, n.Email, n.EmailConfirmToken, n.EmailConfirmed)
 	al := AccountList{}
 	return al.FromDBRow(row)
 }
@@ -71,6 +90,17 @@ func DBInsertNode(n Node) Node {
 		VALUES
 		($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())`,
 		n.ID, n.AccountID, n.Name, n.URL, n.Hostname, n.Port, n.Status, n.Public)
+	nl := NodeList{}
+	return nl.FromDBRow(row)
+}
+
+// DBUpdateNode updates a Node in the DB
+func DBUpdateNode(n Node) Node {
+	db := connect()
+	row := db.QueryRow(`UPDATE nodes SET
+		name = $2, url = $3, hostname = $4, port = $5, status = $6, public = $7, updated_at = NOW()
+		WHERE id = $1`,
+		n.ID, n.Name, n.URL, n.Hostname, n.Port, n.Status, n.Public)
 	nl := NodeList{}
 	return nl.FromDBRow(row)
 }

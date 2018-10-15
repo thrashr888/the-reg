@@ -99,12 +99,17 @@ func login(authtoken string) {
 	os.Setenv("THE_REG_TOKEN", authtoken)
 	fmt.Printf("echo \"authtoken: %s\" > ~/.thereg.yml\nTHE_REG_TOKEN=%s\n", authtoken, authtoken)
 }
+func logout() {
+	removeAuthToken()
+	fmt.Println("Logged out")
+}
 func me() {
 	account := GetAccount()
 	fmt.Println(account.Username)
 }
-func name(idOrName string) {
-	node := GetNode(idOrName)
+func nameNode(id string, name string) {
+	params := Node{Name: name}
+	node := UpdateNode(id, params)
 	fmt.Println(node.URL)
 }
 func start(idOrName string) {
@@ -186,12 +191,16 @@ func Run() {
 		authToken := flag.Arg(1)
 		login(authToken)
 		break
+	case "logout":
+		logout()
+		break
 	case "me":
 		me()
 		break
 	case "name":
 		id := flag.Arg(1)
-		name(id)
+		name := flag.Arg(2)
+		nameNode(id, name)
 		break
 	case "serve":
 		Serve()
@@ -239,4 +248,13 @@ func readAuthToken() (string, error) {
 	}
 
 	return "", errors.New("authToken not found")
+}
+func removeAuthToken() {
+	if checkAuthToken() {
+		fileName, _ := homedir.Expand("~/.thereg.yml")
+		var err = os.Remove(fileName)
+		if err != nil {
+			// fmt.Println(err.Error())
+		}
+	}
 }

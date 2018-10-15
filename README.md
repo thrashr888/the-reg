@@ -87,7 +87,7 @@ DELETE /account
     bc2740d30a5f   httpexposed        76.87.249.25          8081:80   DOWN     2h    Y        
     c65e2d0eb499   redis              76.87.249.25          6379      UP       2h    Y        
     y0am0fa6786a   redis-b            redis15.localnet.org  6379      UP       2h    Y        
-    $ reg account new thrashr888 thrashr888@gmail.com
+    $ reg account thrashr888 thrashr888@gmail.com
     Account created. Check your email to log in at https://www.the-reg.link/
     # You click the link to confirm your email address...
     $ reg get redis

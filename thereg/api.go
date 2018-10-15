@@ -11,8 +11,8 @@ import (
 )
 
 var templates = template.Must(template.ParseFiles("tmpl/index.html", "tmpl/edit.html", "tmpl/view.html"))
-var validPath = regexp.MustCompile("^/(account|node)/([a-zA-Z0-9]+)$")
-var validData = regexp.MustCompile("^data/([a-zA-Z0-9]+)\\.txt$")
+var validPath = regexp.MustCompile("^/(account|node)/([a-zA-Z0-9\\-_]+)$")
+var validConfirmPath = regexp.MustCompile("^/account/confirm/([a-zA-Z0-9\\-_]+)$")
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(time.Now().UTC().UnixNano(), "Index")
@@ -70,13 +70,15 @@ func nodeHandler(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println(time.Now().UTC().UnixNano(), "/node/", id)
 
-	name := r.FormValue("name")
-	hostname := r.FormValue("hostname")
-	port := r.FormValue("port")
-	status := r.FormValue("status")
-	params := Node{Name: name, Hostname: hostname, Port: port, Status: status}
+	account := DBGetAccountByToken(string(r.Header["Auth-Token"][0]))
+	if account.ID == "" {
+		http.Error(w, "Account not found", http.StatusForbidden)
+		return
+	}
 
-	var err error
+	decoder := json.NewDecoder(r.Body)
+	var params Node
+	err := decoder.Decode(&params)
 
 	nodes := NodeList{}
 	switch r.Method {
@@ -87,7 +89,7 @@ func nodeHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write(js)
 	case http.MethodPatch:
 		// PATCH /node/:id
-		res := nodes.Update(id, params)
+		res := nodes.Update(account, id, params)
 		js, _ := json.Marshal(res)
 		w.Write(js)
 	case http.MethodDelete:
@@ -114,11 +116,11 @@ func accountHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	email := r.FormValue("email")
-	username := r.FormValue("username")
-	params := Account{Email: email, Username: username}
+	account := DBGetAccountByToken(string(r.Header["Auth-Token"][0]))
 
-	var err error
+	decoder := json.NewDecoder(r.Body)
+	var params Account
+	err := decoder.Decode(&params)
 
 	accounts := AccountList{}
 	switch r.Method {
@@ -129,17 +131,17 @@ func accountHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write(js)
 	case http.MethodGet:
 		// GET /account
-		res := accounts.Read()
+		res := accounts.Read(account)
 		js, _ := json.Marshal(res)
 		w.Write(js)
 	case http.MethodPatch:
 		// PATCH /account
-		res := accounts.Update(params)
+		res := accounts.Update(account, params)
 		js, _ := json.Marshal(res)
 		w.Write(js)
 	case http.MethodDelete:
 		// DELETE /account
-		res := accounts.Delete()
+		res := accounts.Delete(account)
 		js, _ := json.Marshal(res)
 		w.Write(js)
 	default:
@@ -155,16 +157,18 @@ func accountHandler(w http.ResponseWriter, r *http.Request) {
 func accountConfirmHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(time.Now().UTC().UnixNano(), "/account")
 
-	accounts := AccountList{}
-	account := accounts.Read()
+	w.Header().Set("Content-Type", "application/json")
 
-	js, err := json.Marshal(account)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	m := validConfirmPath.FindStringSubmatch(r.URL.Path)
+	if m == nil {
+		http.NotFound(w, r)
 		return
 	}
+	confirmToken := m[2]
 
-	w.Header().Set("Content-Type", "application/json")
+	accounts := AccountList{}
+	res := accounts.Confirm(confirmToken)
+	js, _ := json.Marshal(res)
 	w.Write(js)
 }
 
@@ -186,7 +190,7 @@ func Serve() {
 	// DELETE /account
 	http.HandleFunc("/account", accountHandler)
 	// GET /account/confirm/:token
-	http.HandleFunc("/account/confirm", accountConfirmHandler)
+	http.HandleFunc("/account/confirm/", accountConfirmHandler)
 
 	fmt.Println("Server running at", "localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
