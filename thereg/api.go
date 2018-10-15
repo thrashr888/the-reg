@@ -2,21 +2,18 @@ package thereg
 
 import (
 	"encoding/json"
-	"fmt"
 	"html/template"
 	"log"
 	"net/http"
 	"regexp"
-	"time"
 )
 
 var templates = template.Must(template.ParseFiles("tmpl/index.html", "tmpl/edit.html", "tmpl/view.html"))
 var validPath = regexp.MustCompile("^/(account|node)/([a-zA-Z0-9\\-_]+)$")
 var validConfirmPath = regexp.MustCompile("^/account/confirm/([a-zA-Z0-9\\-_]+)$")
+var validSubdomainHost = regexp.MustCompile("^([a-zA-Z0-9\\-_]+).([a-zA-Z0-9\\-_]+).the-reg.(link|dev|local)$")
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(time.Now().UTC().UnixNano(), "Index")
-
 	err := templates.ExecuteTemplate(w, "index.html", map[string]string{"title": "Home"})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -24,8 +21,6 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func nodesHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(time.Now().UTC().UnixNano(), "/node")
-
 	w.Header().Set("Content-Type", "application/json")
 
 	account := DBGetAccountByToken(string(r.Header["Auth-Token"][0]))
@@ -57,8 +52,6 @@ func nodesHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func nodeHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(time.Now().UTC().UnixNano(), "/node/:id")
-
 	w.Header().Set("Content-Type", "application/json")
 
 	m := validPath.FindStringSubmatch(r.URL.Path)
@@ -67,8 +60,6 @@ func nodeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	id := m[2]
-
-	fmt.Println(time.Now().UTC().UnixNano(), "/node/", id)
 
 	account := DBGetAccountByToken(string(r.Header["Auth-Token"][0]))
 	if account.ID == "" {
@@ -112,8 +103,6 @@ func nodeHandler(w http.ResponseWriter, r *http.Request) {
 // PATCH /account
 // DELETE /account
 func accountHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(time.Now().UTC().UnixNano(), "/account")
-
 	w.Header().Set("Content-Type", "application/json")
 
 	account := DBGetAccountByToken(string(r.Header["Auth-Token"][0]))
@@ -155,8 +144,6 @@ func accountHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func accountConfirmHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(time.Now().UTC().UnixNano(), "/account/confirm/:token")
-
 	w.Header().Set("Content-Type", "application/json")
 
 	m := validConfirmPath.FindStringSubmatch(r.URL.Path)
@@ -172,26 +159,80 @@ func accountConfirmHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(js)
 }
 
+func proxyHandler(node Node, w http.ResponseWriter, r *http.Request) {
+	// TODO add the proxy
+}
+
+func withLogging(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("remote-addr=%s; method=%s; host=%s; uri=%s; content-type=%s;", r.RemoteAddr, r.Method, r.Host, r.RequestURI, r.Header["Content-Type"])
+		next.ServeHTTP(w, r)
+	}
+}
+
+func withSubdomainCatch(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		m := validSubdomainHost.FindStringSubmatch(r.Host)
+		if m == nil {
+			next.ServeHTTP(w, r)
+			return
+		}
+		nodeName := m[2]
+		accountUsername := m[3]
+
+		log.Printf("node=%s; account=%s", nodeName, accountUsername)
+
+		account := DBGetAccount(accountUsername)
+		if account.ID != "" {
+			http.Error(w, "Account not found", http.StatusForbidden)
+			return
+		}
+		node := DBGetNode(nodeName)
+
+		proxyHandler(node, w, r)
+
+		next.ServeHTTP(w, r)
+	}
+}
+
+type middleware func(next http.HandlerFunc) http.HandlerFunc
+
+func chainMiddleware(mw ...middleware) middleware {
+	return func(final http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			last := final
+			for i := len(mw) - 1; i >= 0; i-- {
+				last = mw[i](last)
+			}
+			last(w, r)
+		}
+	}
+}
+
 // Serve runs the http server
 func Serve() {
-	http.HandleFunc("/", indexHandler)
+	lt := chainMiddleware(withLogging, withSubdomainCatch)
+
+	// GET /
+	http.HandleFunc("/", lt(indexHandler))
 
 	// GET /node
 	// POST /node
-	http.HandleFunc("/node", nodesHandler)
+	http.HandleFunc("/node", lt(nodesHandler))
 	// GET /node/:id
 	// PATCH /node/:id
 	// DELETE /node/:id
-	http.HandleFunc("/node/", nodeHandler)
+	http.HandleFunc("/node/", lt(nodeHandler))
 
 	// POST /account
 	// GET /account
 	// PATCH /account
 	// DELETE /account
-	http.HandleFunc("/account", accountHandler)
+	http.HandleFunc("/account", lt(accountHandler))
 	// GET /account/confirm/:token
-	http.HandleFunc("/account/confirm/", accountConfirmHandler)
+	http.HandleFunc("/account/confirm/", lt(accountConfirmHandler))
 
-	fmt.Println("Server running at", "localhost:8080")
+	log.Println("Server running at", "localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

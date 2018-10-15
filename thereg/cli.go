@@ -67,9 +67,7 @@ func get(id string) {
 	fmt.Println(node.URL)
 }
 func ip() {
-	res, _ := http.Get("https://api.ipify.org")
-	ip, _ := ioutil.ReadAll(res.Body)
-	fmt.Println(string(ip))
+	fmt.Println(GetIP())
 }
 func list() {
 	nodeList := GetNodes()
@@ -213,6 +211,13 @@ func Run() {
 	default:
 		fmt.Println("Command not found.")
 	}
+}
+
+// GetIP returns the user's IP string
+func GetIP() string {
+	res, _ := http.Get("https://api.ipify.org")
+	ip, _ := ioutil.ReadAll(res.Body)
+	return string(ip)
 }
 
 func checkAuthToken() bool {

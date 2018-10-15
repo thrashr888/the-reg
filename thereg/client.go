@@ -104,6 +104,7 @@ func apiGET(types string, paths string) (*http.Response, error) {
 	}
 
 	req.Header.Set("Auth-Token", authToken)
+	req.Header.Set("Content-Type", "application/json")
 
 	return client.Do(req)
 }
@@ -155,6 +156,7 @@ func apiPATCH(types string, paths string, params []byte) (*http.Response, error)
 	}
 
 	req.Header.Set("Auth-Token", authToken)
+	req.Header.Set("Content-Type", "application/json")
 
 	return client.Do(req)
 }
@@ -180,6 +182,7 @@ func apiDELETE(types string, paths string) (*http.Response, error) {
 	}
 
 	req.Header.Set("Auth-Token", authToken)
+	req.Header.Set("Content-Type", "application/json")
 
 	return client.Do(req)
 }

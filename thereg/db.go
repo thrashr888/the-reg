@@ -2,7 +2,6 @@ package thereg
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 )
 
@@ -18,7 +17,7 @@ func connect() *sql.DB {
 // DBGetAccount gets a single Account
 func DBGetAccount(id string) Account {
 	db := connect()
-	row := db.QueryRow("SELECT id, email, email_confirm_token, email_confirmed, username, ip, authtoken, created_at, updated_at FROM accounts WHERE id = $1", id)
+	row := db.QueryRow("SELECT id, email, email_confirm_token, email_confirmed, username, ip, authtoken, created_at, updated_at FROM accounts WHERE id = $1 OR username = $1", id)
 	al := AccountList{}
 	return al.FromDBRow(row)
 }
@@ -75,7 +74,7 @@ func DBGetNodes(accountID string) NodeList {
 	db := connect()
 	rows, err := db.Query("SELECT id, account_id, name, url, hostname, port, status, public, created_at, updated_at FROM nodes WHERE account_id = $1", accountID)
 	if err != nil {
-		fmt.Println("Error loading Nodes:", err)
+		log.Println("Error loading Nodes:", err)
 		return NodeList{}
 	}
 	nl := NodeList{}
