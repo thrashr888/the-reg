@@ -155,7 +155,7 @@ func accountHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func accountConfirmHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(time.Now().UTC().UnixNano(), "/account")
+	fmt.Println(time.Now().UTC().UnixNano(), "/account/confirm/:token")
 
 	w.Header().Set("Content-Type", "application/json")
 
