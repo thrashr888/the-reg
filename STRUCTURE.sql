@@ -8,8 +8,8 @@ CREATE TABLE nodes (
     port        varchar(255) NOT NULL,
     status      varchar(255) NOT NULL,
     public      boolean,
-    created_at  date,
-    updated_at  date
+    created_at  timestamp,
+    updated_at  timestamp
 );
 
 DROP TABLE accounts;
@@ -21,6 +21,6 @@ CREATE TABLE accounts (
     username                  varchar(255),
     ip                        varchar(255) NOT NULL,
     authtoken                 varchar(255) NOT NULL,
-    created_at                date,
-    updated_at                date
+    created_at                timestamp,
+    updated_at                timestamp
 );

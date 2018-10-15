@@ -1,7 +1,19 @@
 package thereg
 
 import (
+	"bufio"
+	"errors"
+	"flag"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"os"
+	"regexp"
+	"strconv"
+
+	homedir "github.com/mitchellh/go-homedir"
+	"github.com/olekukonko/tablewriter"
 )
 
 // account - `reg account new :username :email` sign up for an account
@@ -23,33 +35,69 @@ func account(username string, email string) {
 	fmt.Println(`Account created. Check your email to log in at https://www.the-reg.link/`)
 }
 func add(name string, hostnameOrPort string, port string) {
-	params := Node{Name: name, Hostname: hostnameOrPort, Port: port}
+	var params Node
+	if port != "" {
+		params = Node{Name: name, Hostname: hostnameOrPort, Port: port}
+	} else {
+		res, _ := http.Get("https://api.ipify.org")
+		ip, _ := ioutil.ReadAll(res.Body)
+		params = Node{Name: name, Hostname: string(ip), Port: hostnameOrPort}
+	}
 	node := CreateNode(params)
-	fmt.Println(node.ID, node.Name)
+	fmt.Println(node.ID)
 }
 func create() {
-	account := CreateAccount()
-	fmt.Printf(`# echo "authtoken: %s" > ~/.thereg.yml
-# export THE_REG_TOKEN=%s`, account.Authtoken, account.Authtoken)
+	if checkAuthToken() {
+		_, err := readAuthToken()
+		if err == nil {
+			fmt.Println("Client already registered")
+			return
+		}
+	}
+
+	// create a new account
+	account := CreateAccount(Account{})
+	fileContent := fmt.Sprintf("authtoken: %s", account.Authtoken)
+	writeAuthToken(fileContent)
+	os.Setenv("THE_REG_TOKEN", account.Authtoken)
+	fmt.Printf("echo \"authtoken: %s\" > ~/.thereg.yml\nTHE_REG_TOKEN=%s\n", account.Authtoken, account.Authtoken)
 }
 func get(id string) {
 	node := GetNode(id)
 	fmt.Println(node.URL)
 }
 func ip() {
-	fmt.Println(`76.87.249.25`)
+	res, _ := http.Get("https://api.ipify.org")
+	ip, _ := ioutil.ReadAll(res.Body)
+	fmt.Println(string(ip))
 }
 func list() {
 	nodeList := GetNodes()
-	fmt.Println(`ID             NAME               HOST          PORT      STATUS   AGE   PUBLIC   TAGS`)
+
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"ID", "Name", "Host", "Port", "Status", "Public"})
+	table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
+	table.SetCenterSeparator("|")
 
 	for _, n := range nodeList.Nodes {
-		fmt.Printf(`%s %s %s %s UP 1h Y\n`, n.ID, n.Name, n.Hostname, n.Port)
+		table.Append([]string{n.ID, n.Name, n.Hostname, n.Port, n.Status, strconv.FormatBool(n.Public)})
 	}
+
+	table.Render()
 }
 func login(authtoken string) {
-	fmt.Printf(`# echo "authtoken: %s" > ~/.thereg.yml
-# export THE_REG_TOKEN=%s`, authtoken, authtoken)
+	if checkAuthToken() {
+		_, err := readAuthToken()
+		if err == nil {
+			fmt.Println("Client already logged in")
+			return
+		}
+	}
+
+	fileContent := fmt.Sprintf("authtoken: %s", authtoken)
+	writeAuthToken(fileContent)
+	os.Setenv("THE_REG_TOKEN", authtoken)
+	fmt.Printf("echo \"authtoken: %s\" > ~/.thereg.yml\nTHE_REG_TOKEN=%s\n", authtoken, authtoken)
 }
 func me() {
 	account := GetAccount()
@@ -69,33 +117,64 @@ func start(idOrName string) {
 		fmt.Println(`Local port 8081 not found. Try restarting your server.`)
 	}
 }
+func help() {
+	log.Println(`A global service registry. Free public forwarding. $6.99/mo for unlimited private.
 
-// Register sets up the CLI parsing
-func Register(args string) {
+Usage:
+    $ reg <command> [options...]
 
-	action := "create"
+Commands:
 
-	parsed := make(map[string]string)
-	parsed["id"] = "c65e2d0eb499"
-	parsed["username"] = "thrashr888"
-	parsed["email"] = "thrashr888@gmail.com"
-	parsed["name"] = "redis"
-	parsed["hostnameOrPort"] = "example.com"
-	parsed["port"] = "8080"
-	parsed["authToken"] = "Sc1VvxLceT5MrMaAjoio_2uLEttzm4com5xT1zh7D7"
+    account - "reg account new :username :email" sign up for an account
+    add - "reg add :name [hostname] :port" add a node
+    create - get a user token
+    get - "reg get :name" Get a service url
+    help - show this list
+    ip - get your public ip address
+    list - list your nodes
+    login - save your auth token
+    me - your username
+    name - "reg name :id :name" name a node
+    start - attempt to reset status to "UP"
+    server - run the web service
+
+Examples:
+
+    $ reg create
+    $ reg account new <username> <email>
+    $ reg me
+    $ reg add redis 6379
+    $ reg list
+    $ reg get redis`)
+}
+
+// Run sets up the CLI parsing
+func Run() {
+	flag.Parse()
+
+	action := flag.Arg(0)
 
 	switch action {
 	case "account":
-		account(parsed["username"], parsed["email"])
+		username := flag.Arg(1)
+		email := flag.Arg(2)
+		account(username, email)
 		break
 	case "add":
-		add(parsed["name"], parsed["hostnameOrPort"], parsed["port"])
+		name := flag.Arg(1)
+		hostnameOrPort := flag.Arg(2)
+		port := flag.Arg(3)
+		add(name, hostnameOrPort, port)
 		break
 	case "create":
 		create()
 		break
 	case "get":
-		get(parsed["name"])
+		name := flag.Arg(1)
+		get(name)
+		break
+	case "help":
+		help()
 		break
 	case "ip":
 		ip()
@@ -104,18 +183,60 @@ func Register(args string) {
 		list()
 		break
 	case "login":
-		login(parsed["authToken"])
+		authToken := flag.Arg(1)
+		login(authToken)
 		break
 	case "me":
 		me()
 		break
 	case "name":
-		name(parsed["id"])
+		id := flag.Arg(1)
+		name(id)
+		break
+	case "serve":
+		Serve()
+		os.Exit(0)
 		break
 	case "start":
-		start(parsed["id"])
+		id := flag.Arg(1)
+		start(id)
 		break
 	default:
-		// Give an error message.
+		fmt.Println("Command not found.")
 	}
+}
+
+func checkAuthToken() bool {
+	fileName, _ := homedir.Expand("~/.thereg.yml")
+	if _, err := os.Stat(fileName); !os.IsNotExist(err) {
+		return true
+	}
+	return false
+}
+func writeAuthToken(token string) {
+	fileName, _ := homedir.Expand("~/.thereg.yml")
+	fileHandle, _ := os.Create(fileName)
+	writer := bufio.NewWriter(fileHandle)
+	defer fileHandle.Close()
+
+	fmt.Fprintln(writer, token)
+	writer.Flush()
+}
+func readAuthToken() (string, error) {
+	// get the file contents
+	fileName, _ := homedir.Expand("~/.thereg.yml")
+	b, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		return "", err
+	}
+	line := string(b)
+
+	// find the token
+	r, _ := regexp.Compile("authtoken: (.+)")
+	match := r.FindStringSubmatch(line)
+	if len(match) > 0 {
+		return match[1], nil
+	}
+
+	return "", errors.New("authToken not found")
 }

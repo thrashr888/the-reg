@@ -28,22 +28,22 @@ func nodesHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	hostname := r.FormValue("hostname")
-	port := r.FormValue("port")
-	params := Node{Hostname: hostname, Port: port}
+	account := DBGetAccountByToken(string(r.Header["Auth-Token"][0]))
 
-	var err error
+	decoder := json.NewDecoder(r.Body)
+	var params Node
+	err := decoder.Decode(&params)
 
 	nodes := NodeList{}
 	switch r.Method {
 	case http.MethodGet:
 		// GET /node
-		res := nodes.Index()
+		res := nodes.Index(account)
 		js, _ := json.Marshal(res)
 		w.Write(js)
 	case http.MethodPost:
 		// POST /node
-		res := nodes.Create(params)
+		res := nodes.Create(account, params)
 		js, _ := json.Marshal(res)
 		w.Write(js)
 	default:
@@ -68,7 +68,7 @@ func nodeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	id := m[2]
 
-	fmt.Println(time.Now().UTC().UnixNano(), "/node/:id", id)
+	fmt.Println(time.Now().UTC().UnixNano(), "/node/", id)
 
 	name := r.FormValue("name")
 	hostname := r.FormValue("hostname")

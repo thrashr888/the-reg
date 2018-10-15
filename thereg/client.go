@@ -1,113 +1,185 @@
 package thereg
 
-// Client represents the API client
-type Client struct {
-}
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"log"
+	"net/http"
+	"strings"
+	"time"
+)
 
-// GET /node
+var apiHost = "localhost:8080"
+
+// GetNodes - GET /node
 func GetNodes() NodeList {
-	var n = []Node{
-		Node{
-			ID:       "dff8522fe5dc",
-			Name:     "first-deployment",
-			URL:      "string",
-			Hostname: "76.87.249.25",
-			Port:     "8080:80",
-			Status:   "UP",
-			Public:   true,
-		},
-		Node{
-			ID:       "cf3f7336b1e0",
-			Name:     "http",
-			URL:      "string",
-			Hostname: "76.87.249.25",
-			Port:     "80",
-			Status:   "UP",
-			Public:   true,
-		},
-	}
-	return NodeList{
-		Nodes: n,
-	}
+	res, _ := apiGET("node", "")
+	n := NodeList{}
+	return n.ListFromJSONBody(res)
 }
 
-// POST /node
-func CreateNode(params Node) Node {
-	url := createURL(params.Name, "thrashr888", params.Port)
-	return Node{
-		ID:       "dff8522fe5dc",
-		Name:     params.Name,
-		URL:      url,
-		Hostname: params.Hostname,
-		Port:     params.Port,
-		Status:   "UP",
-		Public:   true,
-	}
+// CreateNode - POST /node
+func CreateNode(node Node) Node {
+	params, _ := json.Marshal(node)
+	res, _ := apiPOST("node", "", params)
+	n := NodeList{}
+	return n.FromJSONBody(res)
 }
 
-// GET /node/:id
+// GetNode - GET /node/:id
 func GetNode(id string) Node {
-	return Node{
-		ID:       id,
-		Name:     "first-deployment",
-		URL:      "first-deployment.thrashr888.the-reg.link:80",
-		Hostname: "76.87.249.25",
-		Port:     "8080:80",
-		Status:   "UP",
-		Public:   true,
+	res, _ := apiGET("node", id)
+	n := NodeList{}
+	return n.FromJSONBody(res)
+}
+
+// UpdateNode - PATCH /node/:id
+func UpdateNode(id string, node Node) Node {
+	params, _ := json.Marshal(node)
+	res, _ := apiPATCH("node", id, params)
+	n := NodeList{}
+	return n.FromJSONBody(res)
+}
+
+// DeleteNode - DELETE /node/:id
+func DeleteNode(id string) error {
+	_, err := apiDELETE("node", id)
+	if err != nil {
+		return err
 	}
+	return nil
 }
 
-// PATCH /node/:id
-func UpdateNode(id string, params Node) Node {
-	url := createURL(params.Name, "thrashr888", params.Port)
-	return Node{
-		ID:       id,
-		Name:     params.Name,
-		URL:      url,
-		Hostname: params.Hostname,
-		Port:     params.Port,
-		Status:   params.Status,
-		Public:   true,
-	}
+// CreateAccount - POST /account
+func CreateAccount(account Account) Account {
+	params, _ := json.Marshal(account)
+	res, _ := apiPOST("account", "", params)
+	a := AccountList{}
+	return a.FromJSONBody(res)
 }
 
-// DELETE /node/:id
-func DeleteNode(id string) string {
-	return id
-}
-
-// POST /account
-func CreateAccount() Account {
-	return Account{
-		ID:       "yb7fd0as",
-		Username: "full-buffallo-hotness",
-	}
-}
-
-// GET /account
+// GetAccount - GET /account
 func GetAccount() Account {
-	return Account{
-		ID:       "yb7fd0as",
-		Email:    "thrashr888@gmail.com",
-		Username: "thrashr888",
+	res, _ := apiGET("account", "")
+	a := AccountList{}
+	return a.FromJSONBody(res)
+}
+
+// UpdateAccount - PATCH /account
+func UpdateAccount(account Account) Account {
+	params, _ := json.Marshal(account)
+	res, _ := apiPATCH("account", "", params)
+	a := AccountList{}
+	return a.FromJSONBody(res)
+}
+
+// DeleteAccount - DELETE /account
+func DeleteAccount() error {
+	_, err := apiDELETE("account", "")
+	if err != nil {
+		return err
 	}
+	return nil
 }
 
-// PATCH /account
-func UpdateAccount(params Account) Account {
-	return Account{
-		ID:       "yb7fd0as",
-		Email:    params.Email,
-		Username: params.Username,
+func apiGET(types string, paths string) (*http.Response, error) {
+	authToken, _ := readAuthToken()
+
+	var path string
+	if paths != "" {
+		path = strings.Join([]string{types, paths}, "/")
+	} else {
+		path = types
 	}
+	url := fmt.Sprintf("http://%s/%s", apiHost, path)
+
+	client := http.Client{
+		Timeout: time.Second * 2, // Maximum of 2 secs
+	}
+
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	req.Header.Set("Auth-Token", authToken)
+
+	return client.Do(req)
 }
 
-// DELETE /account
-func DeleteAccount() string {
-	return "yb7fd0as"
+func apiPOST(types string, paths string, params []byte) (*http.Response, error) {
+	authToken, _ := readAuthToken()
+
+	var path string
+	if paths != "" {
+		path = strings.Join([]string{types, paths}, "/")
+	} else {
+		path = types
+	}
+	url := fmt.Sprintf("http://%s/%s", apiHost, path)
+
+	client := http.Client{
+		Timeout: time.Second * 2, // Maximum of 2 secs
+	}
+
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(params))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	req.Header.Set("Auth-Token", authToken)
+	req.Header.Set("Content-Type", "application/json")
+
+	return client.Do(req)
 }
 
-func getAuth() string {
-	return "Sc1VvxLceT5MrMaAjoio_2uLEttzm4com5xT1zh7D7"
+func apiPATCH(types string, paths string, params []byte) (*http.Response, error) {
+	authToken, _ := readAuthToken()
+
+	var path string
+	if paths != "" {
+		path = strings.Join([]string{types, paths}, "/")
+	} else {
+		path = types
+	}
+	url := fmt.Sprintf("http://%s/%s", apiHost, path)
+
+	client := http.Client{
+		Timeout: time.Second * 2, // Maximum of 2 secs
+	}
+
+	req, err := http.NewRequest(http.MethodPatch, url, bytes.NewBuffer(params))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	req.Header.Set("Auth-Token", authToken)
+
+	return client.Do(req)
+}
+
+func apiDELETE(types string, paths string) (*http.Response, error) {
+	authToken, _ := readAuthToken()
+
+	var path string
+	if paths != "" {
+		path = strings.Join([]string{types, paths}, "/")
+	} else {
+		path = types
+	}
+	url := fmt.Sprintf("http://%s/%s", apiHost, path)
+
+	client := http.Client{
+		Timeout: time.Second * 2, // Maximum of 2 secs
+	}
+
+	req, err := http.NewRequest(http.MethodDelete, url, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	req.Header.Set("Auth-Token", authToken)
+
+	return client.Do(req)
 }

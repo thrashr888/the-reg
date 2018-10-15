@@ -1,0 +1,16 @@
+nodes:
+  first-deployment:
+    host: 76.87.249.25
+    port: 8080:80
+  http:
+    host: 76.87.249.25
+    port: 80
+  https:
+    host: 76.87.249.25
+    port: 443
+  httpexposed:
+    host: 76.87.249.25
+    port: 8081:80
+  redis:
+    host: 76.87.249.25
+    port: 6379
