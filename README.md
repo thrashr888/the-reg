@@ -24,17 +24,17 @@ $ reg [command]
 # API
 
 ```
-POST /node
-GET /node
-GET /node/:id
-PATCH /node/:id
-DELETE /node/:id
+POST /api/node
+GET /api/node
+GET /api/node/:id
+PATCH /api/node/:id
+DELETE /api/node/:id
 
-POST /account
-GET /account
-GET /account/confirm/:token
-PATCH /account
-DELETE /account
+POST /api/account
+GET /api/account
+GET /api/account/confirm/:token
+PATCH /api/account
+DELETE /api/account
 ```
 
 # CLI Examples
@@ -124,7 +124,8 @@ It's more like some links or a [proxy server](https://en.wikipedia.org/wiki/Prox
 
     $ psql -f STRUCTURE.sql thereg
     $ go get github.com/cespare/reflex
-    $ reflex -r '\.(go|html)$' -s -- sh -c 'go build -o reg && go run main.go serve'
+    $ go get -u github.com/ddollar/forego
+    $ reflex -r '\.(go|html)$' -s -- sh -c 'go build -o reg && forego start'
 
 # Build
 

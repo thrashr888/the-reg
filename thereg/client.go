@@ -10,16 +10,16 @@ import (
 	"time"
 )
 
-var apiHost = "localhost:8080"
+var apiHost = "localhost:8080/api"
 
-// GetNodes - GET /node
+// GetNodes - GET /api/node
 func GetNodes() NodeList {
 	res, _ := apiGET("node", "")
 	n := NodeList{}
 	return n.ListFromJSONBody(res)
 }
 
-// CreateNode - POST /node
+// CreateNode - POST /api/node
 func CreateNode(node Node) Node {
 	params, _ := json.Marshal(node)
 	res, _ := apiPOST("node", "", params)
@@ -27,14 +27,14 @@ func CreateNode(node Node) Node {
 	return n.FromJSONBody(res)
 }
 
-// GetNode - GET /node/:id
+// GetNode - GET /api/node/:id
 func GetNode(id string) Node {
 	res, _ := apiGET("node", id)
 	n := NodeList{}
 	return n.FromJSONBody(res)
 }
 
-// UpdateNode - PATCH /node/:id
+// UpdateNode - PATCH /api/node/:id
 func UpdateNode(id string, node Node) Node {
 	params, _ := json.Marshal(node)
 	res, _ := apiPATCH("node", id, params)
@@ -42,7 +42,7 @@ func UpdateNode(id string, node Node) Node {
 	return n.FromJSONBody(res)
 }
 
-// DeleteNode - DELETE /node/:id
+// DeleteNode - DELETE /api/node/:id
 func DeleteNode(id string) error {
 	_, err := apiDELETE("node", id)
 	if err != nil {
@@ -51,7 +51,7 @@ func DeleteNode(id string) error {
 	return nil
 }
 
-// CreateAccount - POST /account
+// CreateAccount - POST /api/account
 func CreateAccount(account Account) Account {
 	params, _ := json.Marshal(account)
 	res, _ := apiPOST("account", "", params)
@@ -59,14 +59,14 @@ func CreateAccount(account Account) Account {
 	return a.FromJSONBody(res)
 }
 
-// GetAccount - GET /account
+// GetAccount - GET /api/account
 func GetAccount() Account {
 	res, _ := apiGET("account", "")
 	a := AccountList{}
 	return a.FromJSONBody(res)
 }
 
-// UpdateAccount - PATCH /account
+// UpdateAccount - PATCH /api/account
 func UpdateAccount(account Account) Account {
 	params, _ := json.Marshal(account)
 	res, _ := apiPATCH("account", "", params)
@@ -74,7 +74,7 @@ func UpdateAccount(account Account) Account {
 	return a.FromJSONBody(res)
 }
 
-// DeleteAccount - DELETE /account
+// DeleteAccount - DELETE /api/account
 func DeleteAccount() error {
 	_, err := apiDELETE("account", "")
 	if err != nil {

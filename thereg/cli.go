@@ -201,7 +201,15 @@ func Run() {
 		nameNode(id, name)
 		break
 	case "serve":
-		Serve()
+		port := flag.Arg(1)
+		if port == "" {
+			port = "8080"
+		}
+		ServeAPI(port)
+		os.Exit(0)
+		break
+	case "proxy":
+		ServeProxy()
 		os.Exit(0)
 		break
 	case "start":

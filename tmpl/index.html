@@ -1,26 +1,99 @@
 <html>
   <head>
+
     <title>The Reg</title>
+
   </head>
   <body>
 
-    {{if .Nodes -}}
-      <h2>
-        Your nodes:
-      </h2>
+    <header>
+      <h1>The Reg</h1>
+      <h2>A global service registry. Free public forwarding. $6.99/mo for unlimited private.</h2>
+    </header>
 
-      <ul>
-        {{- range .Nodes }}
-          <li>
-            <a href="/view/{{ .ID}}">{{ .ID}}</a>
-          </li>
-        {{- end}}
-      </ul>
-    {{- else}}
-      <p>
-        No Nodes here.
-      </p>
-    {{- end}}
+    <div>
+
+      <h3>CLI Examples</h3>
+
+      <pre><code>
+        $ reg create
+        full-buffallo-hotness
+
+        $ reg add redis 6379
+        K01ZjCJmR
+
+        $ reg list
+        |    ID     |  NAME   |         HOST         | PORT | STATUS | PUBLIC |
+        |-----------|---------|----------------------|------|--------|--------|
+        | K01ZjCJmR | redis   | 76.87.249.25         | 6379 | UP     | true   |
+
+        $ reg get redis
+        redis.full-buffallo-hotness.proxy.the-reg.link:6379
+        
+        $ telnet redis.full-buffallo-hotness.proxy.the-reg.link 6379
+        telnet> LRANGE mylist 0 -1
+
+        $ reg account my-username my-email-address@gmail.com
+        Account created. Check your email to log in at https://www.the-reg.link/
+
+        $ reg get redis
+        redis.my-username.the-reg.link:6379
+      </code></pre>
+
+      <h3>CLI Help</h3>
+
+      <pre><code>
+        $ reg help
+        A global service registry. Free public forwarding. $6.99/mo for unlimited private.
+
+        Usage:
+            $ reg <command> [options...]
+        
+        Commands:
+        
+            account - "reg account new :username :email" sign up for an account
+            add - "reg add :name [hostname] :port" add a node
+            create - get a user token
+            get - "reg get :name" Get a service url
+            help - show this list
+            ip - get your public ip address
+            list - list your nodes
+            login - save your auth token
+            me - your username
+            name - "reg name :id :name" name a node
+            start - attempt to reset status to "UP"
+            server - run the web service
+        
+        Examples:
+        
+            $ reg create
+            $ reg account new <username> <email>
+            $ reg me
+            $ reg add redis 6379
+            $ reg list
+            $ reg get redis
+      </code></pre>
+
+      <h3>API</h3>
+
+      <pre><code>
+        POST /api/node
+        GET <a href="/api/node">/api/node</a>
+        GET /api/node/:id
+        PATCH /api/node/:id
+        DELETE /api/node/:id
+        
+        POST /api/account
+        GET <a href="/api/account">/api/account</a>
+        GET /api/account/confirm/:token
+        PATCH /api/account
+        DELETE /api/account
+      </code></pre>
+    </div>
+
+    <footer>
+      &copy; 2018 Paul Thrasher
+    </footer>
 
   </body>
 </html>

@@ -95,14 +95,14 @@ func (nodes *NodeList) FromJSONBody(res *http.Response) Node {
 }
 
 // Index returns the user's nodes
-// GET /node
+// GET /api/node
 func (nodes *NodeList) Index(account Account) NodeList {
 	n := DBGetNodes(account.ID)
 	return n
 }
 
 // Create adds a Node
-// POST /node
+// POST /api/node
 func (nodes *NodeList) Create(account Account, params Node) Node {
 	// check for existing Node
 	old := DBGetNode(params.Name)
@@ -128,14 +128,14 @@ func (nodes *NodeList) Create(account Account, params Node) Node {
 }
 
 // Read returns a node
-// GET /node/:id
+// GET /api/node/:id
 func (nodes *NodeList) Read(id string) Node {
 	n := DBGetNode(id)
 	return n
 }
 
 // Update changes a node
-// PATCH /node/:id
+// PATCH /api/node/:id
 func (nodes *NodeList) Update(account Account, id string, params Node) Node {
 	// check for existing Node
 	node := DBGetNode(id)
@@ -156,7 +156,7 @@ func (nodes *NodeList) Update(account Account, id string, params Node) Node {
 }
 
 // Delete changes a node
-// DELETE /node/:id
+// DELETE /api/node/:id
 func (nodes *NodeList) Delete(id string) string {
 	return id
 }

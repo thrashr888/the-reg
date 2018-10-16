@@ -40,6 +40,14 @@ resource "aws_route53_record" "dev" {
   records = ["${aws_instance.web.public_ip}"]
 }
 
+resource "aws_route53_record" "proxy" {
+  zone_id = "${var.hosted_zone_id}"
+  name    = "proxy.the-reg.link"
+  type    = "A"
+  ttl     = "300"
+  records = ["${aws_instance.proxy.public_ip}"]
+}
+
 data "aws_ami" "amzn2" {
   most_recent = true
 
@@ -77,6 +85,39 @@ resource "aws_instance" "web" {
 
   subnet_id                   = "${var.subnet_id}"
   vpc_security_group_ids      = ["${aws_security_group.the-reg-main.id}"]
+  associate_public_ip_address = true
+
+  user_data = "${data.template_file.user_data.rendered}"
+
+  credit_specification {
+    cpu_credits = "unlimited"
+  }
+
+  root_block_device {
+    volume_size = 10
+  }
+
+  tags {
+    Name = "the-reg-${random_pet.server.id}"
+  }
+
+  volume_tags {
+    Name = "the-reg-${random_pet.server.id}"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_instance" "proxy" {
+  ami           = "${random_pet.server.keepers.ami_id}"
+  instance_type = "t3.nano"
+  key_name      = "${aws_key_pair.id_rsa.key_name}"
+  monitoring    = false
+
+  subnet_id                   = "${var.subnet_id}"
+  vpc_security_group_ids      = ["${aws_security_group.the-reg-proxy.id}"]
   associate_public_ip_address = true
 
   user_data = "${data.template_file.user_data.rendered}"
@@ -165,8 +206,40 @@ resource "aws_security_group" "the-reg-main" {
   }
 }
 
+
+resource "aws_security_group" "the-reg-proxy" {
+  name        = "the-reg-proxy"
+  description = "All proxy ports for the-reg"
+  vpc_id      = "${var.vpc_id}"
+
+  tags {
+    Name = "the-reg-proxy"
+  }
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "HTTP"
+  }
+
+  egress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "HTTP"
+  }
+
+}
+
 output "public_ip" {
   value = "${aws_instance.web.public_ip}"
+}
+
+output "proxy_ip" {
+  value = "${aws_instance.proxy.public_ip}"
 }
 
 output "public_domain" {

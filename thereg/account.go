@@ -87,7 +87,7 @@ func (accounts *AccountList) FromJSONBody(res *http.Response) Account {
 }
 
 // Create makes a new Account
-// POST /account
+// POST /api/account
 func (accounts *AccountList) Create() Account {
 	id := createID()
 	username := petname.Generate(3, "-")
@@ -108,14 +108,14 @@ func (accounts *AccountList) Create() Account {
 }
 
 // Read returns the current User
-// GET /account
+// GET /api/account
 func (accounts *AccountList) Read(account Account) Account {
 	n := DBGetAccount(account.ID)
 	return n
 }
 
 // Confirm validates the Users's email
-// GET /account/confirm/:confirmToken
+// GET /api/account/confirm/:confirmToken
 func (accounts *AccountList) Confirm(confirmToken string) Account {
 	account := DBGetAccountByConfirmToken(confirmToken)
 
@@ -132,7 +132,7 @@ func (accounts *AccountList) Confirm(confirmToken string) Account {
 }
 
 // Update changes the account info
-// PATCH /account
+// PATCH /api/account
 func (accounts *AccountList) Update(account Account, params Account) Account {
 	// update the Account
 	if params.Email != "" {
@@ -153,7 +153,7 @@ func (accounts *AccountList) Update(account Account, params Account) Account {
 }
 
 // Delete removes the User
-// DELETE /account
+// DELETE /api/account
 func (accounts *AccountList) Delete(account Account) string {
 	return "yb7fd0as"
 }
