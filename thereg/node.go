@@ -163,7 +163,7 @@ func (nodes *NodeList) Delete(id string) string {
 
 func createURL(name string, username string, port string) string {
 	// redis.full-buffallo-hotness.the-reg.link:6379
-	return fmt.Sprintf("%v.%v.the-reg.link:%v", name, username, port)
+	return fmt.Sprintf("%v.%v.proxy.the-reg.link:%v", name, username, port)
 }
 
 func createID() string {
