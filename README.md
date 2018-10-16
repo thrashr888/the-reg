@@ -110,7 +110,7 @@ DELETE /api/account
 
 **Does this use UDDI?**
 
-No way.
+No way. It's JSON and it's not a standard.
 
 **Is this a totally secure service?**
 
@@ -122,14 +122,13 @@ It's more like some links or a [proxy server](https://en.wikipedia.org/wiki/Prox
 
 # Dev
 
-    $ psql -f STRUCTURE.sql thereg
-    $ go get github.com/cespare/reflex
-    $ go get -u github.com/ddollar/forego
-    $ reflex -r '\.(go|html)$' -s -- sh -c 'go build -o reg && forego start'
+    $ make boostrap
+    $ make dev
+    $ curl localhost:8081 -H"Host:http.thrashr888.proxy.the-reg.local:8080"
 
 # Build
 
-    $ go build -o reg
+    $ make build
 
 # License
 

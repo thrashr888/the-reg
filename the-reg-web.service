@@ -1,0 +1,14 @@
+[Unit]
+Description=the reg - web server
+After=network.target
+
+[Service]
+Environment=GO_ENV=production
+Type=simple
+User=root
+Group=root
+ExecStart=reg serve 80
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

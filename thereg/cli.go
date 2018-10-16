@@ -29,12 +29,12 @@ import (
 // start - attempt to reset status to "UP"
 // server - run the web service
 
-func account(username string, email string) {
+func cmdAccount(username string, email string) {
 	params := Account{Email: email, Username: username}
 	UpdateAccount(params)
 	fmt.Println(`Account created. Check your email to log in at https://www.the-reg.link/`)
 }
-func add(name string, hostnameOrPort string, port string) {
+func cmdAdd(name string, hostnameOrPort string, port string) {
 	var params Node
 	if port != "" {
 		params = Node{Name: name, Hostname: hostnameOrPort, Port: port}
@@ -46,7 +46,7 @@ func add(name string, hostnameOrPort string, port string) {
 	node := CreateNode(params)
 	fmt.Println(node.ID)
 }
-func create() {
+func cmdCreate() {
 	if checkAuthToken() {
 		_, err := readAuthToken()
 		if err == nil {
@@ -62,14 +62,18 @@ func create() {
 	os.Setenv("THE_REG_TOKEN", account.Authtoken)
 	fmt.Printf("echo \"authtoken: %s\" > ~/.thereg.yml\nTHE_REG_TOKEN=%s\n", account.Authtoken, account.Authtoken)
 }
-func get(id string) {
+func cmdGet(id string) {
 	node := GetNode(id)
 	fmt.Println(node.URL)
 }
-func ip() {
+func cmdIP() {
 	fmt.Println(GetIP())
 }
-func list() {
+func cmdID(id string) {
+	node := GetNode(id)
+	fmt.Println(node.ID)
+}
+func cmdList() {
 	nodeList := GetNodes()
 
 	table := tablewriter.NewWriter(os.Stdout)
@@ -83,7 +87,7 @@ func list() {
 
 	table.Render()
 }
-func login(authtoken string) {
+func cmdLogin(authtoken string) {
 	if checkAuthToken() {
 		_, err := readAuthToken()
 		if err == nil {
@@ -97,20 +101,20 @@ func login(authtoken string) {
 	os.Setenv("THE_REG_TOKEN", authtoken)
 	fmt.Printf("echo \"authtoken: %s\" > ~/.thereg.yml\nTHE_REG_TOKEN=%s\n", authtoken, authtoken)
 }
-func logout() {
+func cmdLogout() {
 	removeAuthToken()
 	fmt.Println("Logged out")
 }
-func me() {
+func cmdMe() {
 	account := GetAccount()
 	fmt.Println(account.Username)
 }
-func nameNode(id string, name string) {
+func cmdName(id string, name string) {
 	params := Node{Name: name}
 	node := UpdateNode(id, params)
 	fmt.Println(node.URL)
 }
-func start(idOrName string) {
+func cmdStart(idOrName string) {
 	params := Node{Status: "UP"}
 	node := UpdateNode(idOrName, params)
 
@@ -161,44 +165,48 @@ func Run() {
 	case "account":
 		username := flag.Arg(1)
 		email := flag.Arg(2)
-		account(username, email)
+		cmdAccount(username, email)
 		break
 	case "add":
 		name := flag.Arg(1)
 		hostnameOrPort := flag.Arg(2)
 		port := flag.Arg(3)
-		add(name, hostnameOrPort, port)
+		cmdAdd(name, hostnameOrPort, port)
 		break
 	case "create":
-		create()
+		cmdCreate()
 		break
 	case "get":
 		name := flag.Arg(1)
-		get(name)
+		cmdGet(name)
 		break
 	case "help":
 		help()
 		break
+	case "id":
+		name := flag.Arg(1)
+		cmdID(name)
+		break
 	case "ip":
-		ip()
+		cmdIP()
 		break
 	case "list":
-		list()
+		cmdList()
 		break
 	case "login":
 		authToken := flag.Arg(1)
-		login(authToken)
+		cmdLogin(authToken)
 		break
 	case "logout":
-		logout()
+		cmdLogout()
 		break
 	case "me":
-		me()
+		cmdMe()
 		break
 	case "name":
 		id := flag.Arg(1)
 		name := flag.Arg(2)
-		nameNode(id, name)
+		cmdName(id, name)
 		break
 	case "serve":
 		port := flag.Arg(1)
@@ -214,7 +222,7 @@ func Run() {
 		break
 	case "start":
 		id := flag.Arg(1)
-		start(id)
+		cmdStart(id)
 		break
 	default:
 		fmt.Println("Command not found.")

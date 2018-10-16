@@ -1,0 +1,14 @@
+[Unit]
+Description=the reg - proxy server
+After=network.target
+
+[Service]
+Environment=GO_ENV=production
+Type=simple
+User=root
+Group=root
+ExecStart=reg proxy
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
