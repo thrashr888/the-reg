@@ -203,7 +203,7 @@ func ServeAPI(port string) {
 	// GET /api/account/confirm/:token
 	http.HandleFunc("/api/account/confirm/", lt(accountConfirmHandler))
 
-	log.Println("API Server running at", "localhost:", port)
 	host := fmt.Sprintf(":%s", port)
+	log.Println("API Server running at", host)
 	log.Fatal(http.ListenAndServe(host, nil))
 }
