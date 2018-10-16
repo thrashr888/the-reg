@@ -56,7 +56,7 @@ func ServeProxy() {
 	})
 
 	port := "8081"
-	log.Println("API Server running at", "localhost:", port)
+	log.Println("Proxy Server running at", "localhost:", port)
 	host := fmt.Sprintf(":%s", port)
 	log.Fatal(http.ListenAndServe(host, nil))
 }
