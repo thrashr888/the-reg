@@ -27,8 +27,11 @@ release:
 	# TODO
 
 .PHONY: deploy
-deploy:
-	# TODO
+deploy: build
+	scp build/linux-amd64/reg ec2-user@www.the-reg.link:/usr/local
+	ssh -t ec2-user@www.the-reg.link "sudo systemctl start the-reg-www"
+	scp build/linux-amd64/reg ec2-user@proxy.the-reg.link:/usr/local
+	ssh -t ec2-user@proxy.the-reg.link "sudo systemctl start the-reg-proxy"
 
 .PHONY: clean
 clean: ## Clean build artifacts

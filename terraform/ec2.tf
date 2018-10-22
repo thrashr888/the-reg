@@ -29,7 +29,7 @@ resource "aws_route53_record" "www" {
   name    = "www.the-reg.link"
   type    = "A"
   ttl     = "300"
-  records = ["${aws_instance.web.public_ip}"]
+  records = ["${aws_instance.www.public_ip}"]
 }
 
 resource "aws_route53_record" "dev" {
@@ -37,7 +37,7 @@ resource "aws_route53_record" "dev" {
   name    = "dev.the-reg.link"
   type    = "A"
   ttl     = "300"
-  records = ["${aws_instance.web.public_ip}"]
+  records = ["${aws_instance.www.public_ip}"]
 }
 
 resource "aws_route53_record" "proxy" {
@@ -85,7 +85,7 @@ resource "random_pet" "server" {
   length = 3
 }
 
-resource "aws_instance" "web" {
+resource "aws_instance" "www" {
   ami           = "${random_pet.server.keepers.ami_id}"
   instance_type = "t3.micro"
   key_name      = "${aws_key_pair.id_rsa.key_name}"
@@ -122,14 +122,14 @@ resource "aws_instance" "web" {
     destination = "/usr/local/reg"
   }
   provisioner "file" {
-    source      = "the-reg-web.service"
-    destination = "/lib/systemd/system/the-reg-web.service"
+    source      = "the-reg-www.service"
+    destination = "/lib/systemd/system/the-reg-www.service"
   }
   provisioner "remote-exec" {
     inline = [
       "sudo systemctl daemon-reload",
-      "sudo systemctl enable the-reg-web",
-      "sudo systemctl start the-reg-web"
+      "sudo systemctl enable the-reg-www",
+      "sudo systemctl start the-reg-www"
     ]
   }
 }
@@ -190,7 +190,7 @@ resource "aws_key_pair" "id_rsa" {
 
 resource "aws_security_group" "the-reg-main" {
   name        = "the-reg-main"
-  description = "Just web ports for the-reg"
+  description = "Just www ports for the-reg"
   vpc_id      = "${var.vpc_id}"
 
   tags {
@@ -246,7 +246,6 @@ resource "aws_security_group" "the-reg-main" {
   }
 }
 
-
 resource "aws_security_group" "the-reg-proxy" {
   name        = "the-reg-proxy"
   description = "All proxy ports for the-reg"
@@ -275,7 +274,7 @@ resource "aws_security_group" "the-reg-proxy" {
 }
 
 output "public_ip" {
-  value = "${aws_instance.web.public_ip}"
+  value = "${aws_instance.www.public_ip}"
 }
 
 output "proxy_ip" {
