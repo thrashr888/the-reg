@@ -118,18 +118,13 @@ resource "aws_instance" "www" {
   }
 
   provisioner "file" {
-    source      = "../build/linux-amd64/reg"
-    destination = "/usr/local/reg"
-  }
-  provisioner "file" {
     source      = "the-reg-www.service"
     destination = "/lib/systemd/system/the-reg-www.service"
   }
   provisioner "remote-exec" {
     inline = [
       "sudo systemctl daemon-reload",
-      "sudo systemctl enable the-reg-www",
-      "sudo systemctl start the-reg-www"
+      "sudo systemctl enable the-reg-www"
     ]
   }
 }
@@ -167,18 +162,13 @@ resource "aws_instance" "proxy" {
   }
 
   provisioner "file" {
-    source      = "../build/linux-amd64/reg"
-    destination = "/usr/local/reg"
-  }
-  provisioner "file" {
     source      = "the-reg-proxy.service"
     destination = "/lib/systemd/system/the-reg-proxy.service"
   }
   provisioner "remote-exec" {
     inline = [
       "sudo systemctl daemon-reload",
-      "sudo systemctl enable the-reg-proxy",
-      "sudo systemctl start the-reg-proxy"
+      "sudo systemctl enable the-reg-proxy"
     ]
   }
 }
