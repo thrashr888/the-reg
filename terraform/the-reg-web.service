@@ -3,6 +3,7 @@ Description=the reg - web server
 After=network.target
 
 [Service]
+WorkingDirectory=/usr/local
 Environment=GO_ENV=production
 Type=simple
 User=root

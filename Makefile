@@ -15,6 +15,20 @@ dev:
 .PHONY: build
 build:
 	go build -o reg
+	go build -o build/current/reg
+	env GOOS=darwin GOARCH=amd64 go build -o build/darwin-amd64/reg
+	env GOOS=linux GOARCH=amd64 go build -o build/linux-amd64/reg
+	env GOOS=linux GOARCH=arm go build -o build/linux-arm/reg
+	env GOOS=linux GOARCH=arm64 go build -o build/linux-arm64/reg
+	env GOOS=windows GOARCH=amd64 go build -o build/windows-amd64/reg
+
+.PHONY: release
+release:
+	# TODO
+
+.PHONY: deploy
+deploy:
+	# TODO
 
 .PHONY: clean
 clean: ## Clean build artifacts

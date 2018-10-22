@@ -48,6 +48,14 @@ resource "aws_route53_record" "proxy" {
   records = ["${aws_instance.proxy.public_ip}"]
 }
 
+resource "aws_route53_record" "proxy-wildcard" {
+  zone_id = "${var.hosted_zone_id}"
+  name    = "*.proxy.the-reg.link"
+  type    = "A"
+  ttl     = "300"
+  records = ["${aws_instance.proxy.public_ip}"]
+}
+
 data "aws_ami" "amzn2" {
   most_recent = true
 
@@ -108,6 +116,22 @@ resource "aws_instance" "web" {
   lifecycle {
     create_before_destroy = true
   }
+
+  provisioner "file" {
+    source      = "../build/linux-amd64/reg"
+    destination = "/usr/local/reg"
+  }
+  provisioner "file" {
+    source      = "the-reg-web.service"
+    destination = "/lib/systemd/system/the-reg-web.service"
+  }
+  provisioner "remote-exec" {
+    inline = [
+      "sudo systemctl daemon-reload",
+      "sudo systemctl enable the-reg-web",
+      "sudo systemctl start the-reg-web"
+    ]
+  }
 }
 
 resource "aws_instance" "proxy" {
@@ -140,6 +164,22 @@ resource "aws_instance" "proxy" {
 
   lifecycle {
     create_before_destroy = true
+  }
+
+  provisioner "file" {
+    source      = "../build/linux-amd64/reg"
+    destination = "/usr/local/reg"
+  }
+  provisioner "file" {
+    source      = "the-reg-proxy.service"
+    destination = "/lib/systemd/system/the-reg-proxy.service"
+  }
+  provisioner "remote-exec" {
+    inline = [
+      "sudo systemctl daemon-reload",
+      "sudo systemctl enable the-reg-proxy",
+      "sudo systemctl start the-reg-proxy"
+    ]
   }
 }
 
