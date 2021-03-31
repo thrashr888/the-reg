@@ -1,3 +1,7 @@
+# DEAD PROJECT - DO NOT USE
+
+Made public for posterity's sake, and to share ideas.
+
 # Are you on The Reg?
 
 A global service registry. Free public forwarding. $6.99/mo for unlimited private.
